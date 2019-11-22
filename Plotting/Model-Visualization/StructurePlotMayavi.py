@@ -11,7 +11,8 @@
 import numpy as np
 import mayavi.mlab as mlab
 
-show_node_tags = 'no'  #check if you want to show node numbers:  'no' or 'yes'
+show_node_tags = 'no'		# Check if you want to display the node numbers     :: 'yes'  or   'no'
+show_element_tags = 'no'	# Check if you want to display the element numbers  :: 'yes'  or   'no'
 offset = 0.05 #offset for text
 
 black = (0,0,0)
@@ -33,7 +34,10 @@ with open ('RecordElements.out', 'r') as elements:
 		
 		mlab.plot3d((iNode[0], jNode[0]), (iNode[1], jNode[1]), (iNode[2], jNode[2]), color=black, tube_radius=0.35) ; #tube_radius=1.
 		if show_node_tags == 'yes':
-			mlab.text3d(iNode[0]+offset, iNode[1]+offset, iNode[2]+offset, 'N-'+str(line.split()[1]), color=(0.3,0,1), scale=(1,1,1))
+			mlab.text3d(iNode[0]+offset, iNode[1]+offset, iNode[2]+offset, str(line.split()[1]), color=(0.6,0,1), scale=(0.6,0.6,0.6))
+			
+		if show_element_tags == 'yes':
+			mlab.text3d((iNode[0]+jNode[0])*0.5+offset, (iNode[1]+jNode[1])*0.5+offset, (iNode[2]+jNode[2])*0.5+offset, str(line.split()[0]), 
+				color=(0.0,0.2,0.13), orient_to_camera = True, scale=(0.6,0.6,0.6))  
 
 mlab.show()
-
