@@ -13,6 +13,11 @@ import chart_studio.plotly as py
 import plotly.io as pio
 import numpy as np
 
+show_node_tags = 'no'		# Check if you want to display the node numbers     :: 'yes'  or   'no'
+show_element_tags = 'no'	# Check if you want to display the element numbers  :: 'yes'  or   'no'
+offset = 0.05				#offset for text
+ 
+
 N,x,y,z = np.loadtxt('RecordNodes.out', dtype=str, delimiter=None, converters=None, unpack=True)
 
 fig = go.Figure()
@@ -39,6 +44,18 @@ with open ('RecordElements.out', 'r') as elements:
 									line=dict(
 									color='darkblue',
 									width=2)))
+									
+		if show_node_tags == 'yes':
+			fig.add_trace(go.Scatter3d(x = [iNodeO[0]+offset], y=[iNodeO[1]+offset], z=[iNodeO[2]+offset],
+								mode="text",
+								text=[str(line.split()[1])],
+								textposition="top center"))
+							
+		if show_element_tags == 'yes':
+			fig.add_trace(go.Scatter3d(x = [0.5*(iNodeO[0]+jNodeO[0])], y=[0.5*(iNodeO[1]+jNodeO[1])], z=[0.5*(iNodeO[2]+jNodeO[2])],
+								mode="text",
+								text=[str(line.split()[0])],
+								textposition="top center"))
 #
 fig.update_layout(
 	#width=800,
@@ -61,8 +78,7 @@ fig.update_layout(
 	),
 )
 
-## Use pio.write to save the plot as a .html file
-pio.write_html(fig, file='StructurePlotly_Render.html', auto_open=False)
+pio.write_html(fig, file='StructurePlotly_Render.html', auto_open=True)
 
 ## Use py.plot to send the plot to your Plotly account. See Plotly python documentation to setup an account.
 # py.plot(fig, file='StructurePlotly_Render', auto_open=True)
