@@ -100,9 +100,9 @@ node 55 1.0 2.0 0
 
 #define element
 
-# set ShellType "ShellNLDKGQ"
+set ShellType "ShellNLDKGQ"
 # set ShellType "ShellMITC4"
-set ShellType "ShellDKGQ"
+# set ShellType "ShellDKGQ"
 
 element $ShellType 1  1  2  7  6 1
 element $ShellType 2  2  3  8  7 2
