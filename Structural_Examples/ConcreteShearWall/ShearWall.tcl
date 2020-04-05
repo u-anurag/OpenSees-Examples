@@ -1,3 +1,10 @@
+######
+# Original example by Lu XZ using PSUMAT.
+# Example 2 here - http://www.luxinzheng.net/download/OpenSEES/Examples_of_NLDKGQ_element.htm
+# 
+######
+
+
 wipe
 
 model basic -ndm 3 -ndf 6
