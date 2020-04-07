@@ -9,7 +9,7 @@ import math
 
 pi = 3.1415
 
-AnalysisType = "Cyclic" # Cyclic   Pushover   Gravity
+AnalysisType = "Pushover" # Cyclic   Pushover   Gravity
 
 wipe()
 
@@ -21,7 +21,7 @@ model('basic','-ndm',3,'-ndf',6)
 
 ## PSUMAT ##############################################
 ## Command # nDmaterial PlaneStressUserMaterial $matTag     40     7       $fc $ft $fcu $epsc0 $epscu $epstu $stc
-nDMaterial('PlaneStressUserMaterial',1,60,7,20.7e6,2.07e6,-4.14e6,-0.002,-0.01,0.001,0.3)
+nDMaterial('PlaneStressUserMaterial',1,40,7,20.7e6,2.07e6,-4.14e6,-0.002,-0.01,0.001,0.3)
 
 ## Plane Stress Material ###############################
 
@@ -114,56 +114,58 @@ node(55,1.0,2.0,0)
 # #########################
 # ELEMENTS 
 # #########################
+ShellType = "ShellNLDKGQ"
+# ShellType = "ShellMITC4"
 
-element('ShellNLDKGQ',1,1,2,7,6,1)
-element('ShellNLDKGQ',2,2,3,8,7,2)
-element('ShellNLDKGQ',3,3,4,9,8,2)
-element('ShellNLDKGQ',4,4,5,10,9,1)
+element(ShellType,1,1,2,7,6,1)
+element(ShellType,2,2,3,8,7,2)
+element(ShellType,3,3,4,9,8,2)
+element(ShellType,4,4,5,10,9,1)
 
-element('ShellNLDKGQ',5,6,7,12,11,1)
-element('ShellNLDKGQ',6,7,8,13,12,2)
-element('ShellNLDKGQ',7,8,9,14,13,2)
-element('ShellNLDKGQ',8,9,10,15,14,1)
+element(ShellType,5,6,7,12,11,1)
+element(ShellType,6,7,8,13,12,2)
+element(ShellType,7,8,9,14,13,2)
+element(ShellType,8,9,10,15,14,1)
 
-element('ShellNLDKGQ',9,11,12,17,16,1)
-element('ShellNLDKGQ',10,12,13,18,17,2)
-element('ShellNLDKGQ',11,13,14,19,18,2)
-element('ShellNLDKGQ',12,14,15,20,19,1)
+element(ShellType,9,11,12,17,16,1)
+element(ShellType,10,12,13,18,17,2)
+element(ShellType,11,13,14,19,18,2)
+element(ShellType,12,14,15,20,19,1)
 
-element('ShellNLDKGQ',13,16,17,22,21,1)
-element('ShellNLDKGQ',14,17,18,23,22,2)
-element('ShellNLDKGQ',15,18,19,24,23,2)
-element('ShellNLDKGQ',16,19,20,25,24,1)
+element(ShellType,13,16,17,22,21,1)
+element(ShellType,14,17,18,23,22,2)
+element(ShellType,15,18,19,24,23,2)
+element(ShellType,16,19,20,25,24,1)
 
-element('ShellNLDKGQ',17,21,22,27,26,1)
-element('ShellNLDKGQ',18,22,23,28,27,2)
-element('ShellNLDKGQ',19,23,24,29,28,2)
-element('ShellNLDKGQ',20,24,25,30,29,1)
+element(ShellType,17,21,22,27,26,1)
+element(ShellType,18,22,23,28,27,2)
+element(ShellType,19,23,24,29,28,2)
+element(ShellType,20,24,25,30,29,1)
 
-element('ShellNLDKGQ',21,26,27,32,31,1)
-element('ShellNLDKGQ',22,27,28,33,32,2)
-element('ShellNLDKGQ',23,28,29,34,33,2)
-element('ShellNLDKGQ',24,29,30,35,34,1)
+element(ShellType,21,26,27,32,31,1)
+element(ShellType,22,27,28,33,32,2)
+element(ShellType,23,28,29,34,33,2)
+element(ShellType,24,29,30,35,34,1)
 
-element('ShellNLDKGQ',25,31,32,37,36,1)
-element('ShellNLDKGQ',26,32,33,38,37,2)
-element('ShellNLDKGQ',27,33,34,39,38,2)
-element('ShellNLDKGQ',28,34,35,40,39,1)
+element(ShellType,25,31,32,37,36,1)
+element(ShellType,26,32,33,38,37,2)
+element(ShellType,27,33,34,39,38,2)
+element(ShellType,28,34,35,40,39,1)
 
-element('ShellNLDKGQ',29,36,37,42,41,1)
-element('ShellNLDKGQ',30,37,38,43,42,2)
-element('ShellNLDKGQ',31,38,39,44,43,2)
-element('ShellNLDKGQ',32,39,40,45,44,1)
+element(ShellType,29,36,37,42,41,1)
+element(ShellType,30,37,38,43,42,2)
+element(ShellType,31,38,39,44,43,2)
+element(ShellType,32,39,40,45,44,1)
 
-element('ShellNLDKGQ',33,41,42,47,46,1)
-element('ShellNLDKGQ',34,42,43,48,47,2)
-element('ShellNLDKGQ',35,43,44,49,48,2)
-element('ShellNLDKGQ',36,44,45,50,49,1)
+element(ShellType,33,41,42,47,46,1)
+element(ShellType,34,42,43,48,47,2)
+element(ShellType,35,43,44,49,48,2)
+element(ShellType,36,44,45,50,49,1)
 
-element('ShellNLDKGQ',37,46,47,52,51,1)
-element('ShellNLDKGQ',38,47,48,53,52,2)
-element('ShellNLDKGQ',39,48,49,54,53,2)
-element('ShellNLDKGQ',40,49,50,55,54,1)
+element(ShellType,37,46,47,52,51,1)
+element(ShellType,38,47,48,53,52,2)
+element(ShellType,39,48,49,54,53,2)
+element(ShellType,40,49,50,55,54,1)
 
 # P-delta columns
 
@@ -274,14 +276,14 @@ if(AnalysisType=="Pushover"):
 	
 	ControlNode=53
 	ControlDOF=1
-	MaxDisp= 20
-	DispIncr=0.1
+	MaxDisp= 0.020
+	DispIncr=0.00001
 	NstepsPush=int(MaxDisp/DispIncr)
 	
 	load(ControlNode, 1.00, 0.0, 0.0, 0.0, 0.0, 0.0)
 	
-	# system("BandGEN")
-	system("ProfileSPD")
+	system("BandGeneral")
+	# system("ProfileSPD")
 	numberer("RCM")
 	constraints("Plain")
 	# constraints('Penalty',1e20,1e20)
@@ -290,7 +292,7 @@ if(AnalysisType=="Pushover"):
 	# algorithm("Newton")    
 	algorithm('KrylovNewton')
 	# test('NormUnbalance',1e-5, 100, 1)
-	test('NormDispIncr',1e-05, 100, 1)
+	test('NormDispIncr',1e-05, 1000, 2)
 	# test('EnergyIncr',1e-05, 100, 1)   
 	analysis("Static")
 	
