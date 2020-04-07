@@ -7,14 +7,16 @@
 
 wipe
 
+set AnalysisType "Pushover";  # "Cyclic"
+
 model basic -ndm 3 -ndf 6
 
 ## Command # nDmaterial PlaneStressUserMaterial $matTag     40     7       $fc $ft $fcu $epsc0 $epscu $epstu $stc
-nDMaterial PlaneStressUserMaterial    1       40         7    20.7e6   2.07e6  -4.14e6  -0.002    -0.01  0.001  0.3
+# nDMaterial PlaneStressUserMaterial    1       40         7    20.7e6   2.07e6  -4.14e6  -0.002    -0.01  0.001  0.3
 
 ## TRY PlasticDamageConcretePlaneStress
 ## Command # nDMaterial PlasticDamageConcretePlaneStress $tag $E $nu $ft $fc <$beta $Ap $An $Bn>
-# nDMaterial PlasticDamageConcretePlaneStress 1 25743.0e6 0.25  2.07e6   20.7e6  0.6 0.1 2.0 0.75; # <$beta $Ap $An $Bn> 0.6 0.5 2.0 0.75
+nDMaterial PlasticDamageConcretePlaneStress 1 25743.0e6 0.25  2.07e6   20.7e6  0.6 0.1 2.0 0.75; # <$beta $Ap $An $Bn> 0.6 0.5 2.0 0.75
 
 nDMaterial   PlateFromPlaneStress     4         1                 1.25e10
 
@@ -220,16 +222,105 @@ analyze 10;
 puts "gravity analyze ok..."
 loadConst -time 0.0;
 
-timeSeries Path 1 -dt 0.1 -filePath input.txt ;
-pattern Plain 2 1 {
-  sp 53 1 1
- }
+wipeAnalysis
 
-constraints Penalty 1e20 1e20;  
-numberer RCM;					
-system BandGeneral;				
-test NormDispIncr 1.0e-5 1000 2; 	 # 2			
-algorithm KrylovNewton;		
-integrator LoadControl 0.1;			
-analysis Static	;
-analyze 700
+if {$AnalysisType == "Cyclic"} {
+
+	timeSeries Path 1 -dt 0.1 -filePath input.txt ;
+	pattern Plain 2 1 {
+	  sp 53 1 1
+	 }
+
+	constraints Penalty 1e20 1e20;  
+	numberer RCM;					
+	system BandGeneral;				
+	test NormDispIncr 1.0e-5 1000 2; 	 # 2			
+	algorithm KrylovNewton;		
+	integrator LoadControl 0.1;			
+	analysis Static	;
+	analyze 700
+
+}
+
+if {$AnalysisType == "Pushover"} {
+	
+	set ControlNode 53;
+	set ControlDOF  1;
+	set Dmax  0.025;  # m 
+	set Dincr  0.00001;
+	set Nsteps [expr int($Dmax/$Dincr)];
+	set algorithmType	Newton;  # Newton;
+	
+	file mkdir Pushover
+	recorder Node -file Pushover/DispTcl.out -node 53 -dof 1  disp;		# displacements of free node 5
+	recorder Node -file Pushover/Reaction.out -time -node 1 2 3 4 5 -dof 1 reaction 
+
+	# create load pattern for lateral pushover load
+	set Hload 1;				# define the lateral load as a proportion of the weight so that the pseudo time equals the lateral-load coefficient when using linear load pattern
+	pattern Plain 200 Linear {   			# define load pattern -- generalized
+		load $ControlNode $Hload 0.0 0.0 0.0 0.0 0.0;	# define lateral load in static lateral analysis # node#, FX FY MZ --
+	}
+
+	# 
+	set maxNumIter		1000;
+	set printFlag		0;
+	
+	constraints Penalty 1e20 1e20;  
+	numberer RCM;					
+	system BandGeneral;				
+	test NormDispIncr 1.0e-5 1000 2; 	 # 2			
+	algorithm Newton;		
+	integrator 		DisplacementControl  $ControlNode   $ControlDOF $Dincr $maxNumIter; # 0.0001  0.01;	# use displacement-controlled analysis
+	analysis 		Static;			# define type of analysis static or transient
+	
+	set ok [analyze $Nsteps];			# this will return zero if no convergence problems were encountered
+	 
+	if {$ok != 0} {  
+		# if analysis fails, we try some other stuff, performance is slower inside this loop
+		set Dstep 0.0;
+		set ok 0 ;
+		while {$Dstep <= 1.0 && $ok == 0} {	
+			set controlDisp [nodeDisp $ControlNode $ControlDOF ];   # current displacement of the node
+			set Dstep [expr $controlDisp/$Dmax] ;
+			set ok [analyze 1 ] ;
+			# if analysis fails, we try some other stuff
+			# performance is slower inside this loop	global maxNumIterStatic;	    # max no. of iterations performed before "failure to converge" is ret'd
+				
+				if {$ok != 0} {
+					puts "Trying KrylovNewton .." ;
+					algorithm KrylovNewton -maxDim 3;
+					set ok [analyze 1];
+					algorithm $algorithmType ;
+				}
+				if {$ok != 0} {
+					puts "Trying Newton with Initial Tangent .." ;
+					algorithm Newton -initial  ;
+					set ok [analyze 1]  ;
+					algorithm $algorithmType  ;
+				}
+				if {$ok != 0} {
+					puts "Trying Broyden .."  ;
+					algorithm Broyden 8  ;
+					set ok [analyze 1 ]  ;
+					algorithm $algorithmType  ;
+				}
+				if {$ok != 0} {
+					puts "Trying NewtonWithLineSearch .."  ;
+					algorithm NewtonLineSearch 0.8   ;
+					set ok [analyze 1]  ;
+					algorithm $algorithmType  ;
+				}
+		};	# end while loop
+	};      # end if ok !0
+
+	set currentDisp [nodeDisp $ControlNode $ControlDOF ]
+	
+	if {$ok != 0 } {
+		puts " Could not converge at disp $currentDisp m"
+	}
+	  
+	if {$ok == 0 } {
+		puts " Analysis converged at  drift $currentDisp"
+	  }
+	puts "Pushover analysis is done"
+}
