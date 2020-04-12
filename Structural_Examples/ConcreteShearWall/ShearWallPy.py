@@ -1,4 +1,7 @@
 
+# Converted to openseespy by: Anurag Upadhyay, University of Utah.
+# Units: N and m to follow the originally published code.
+
 from openseespy.postprocessing.Get_Rendering import * 
 from openseespy.opensees import *
 
@@ -19,25 +22,21 @@ model('basic','-ndm',3,'-ndf',6)
 ## Define Material
 ###################################
 
-## PSUMAT ##############################################
-## Command # nDmaterial PlaneStressUserMaterial $matTag     40     7       $fc $ft $fcu $epsc0 $epscu $epstu $stc
+# Define PSUMAT and convert it to plane stress material
 nDMaterial('PlaneStressUserMaterial',1,40,7,20.7e6,2.07e6,-4.14e6,-0.002,-0.01,0.001,0.3)
-
-## Plane Stress Material ###############################
-
-## TRY PlasticDamageConcretePlaneStress
-## Command # nDMaterial PlasticDamageConcretePlaneStress $tag $E $nu $ft $fc <$beta $Ap $An $Bn>
-# nDMaterial('PlasticDamageConcretePlaneStress',1,25743.0e6,0.25,2.07e6,20.7e6,0.6,0.1,2.0,0.75) # <beta Ap An Bn> 0.6 0.5 2.0 0.75 
-
 nDMaterial('PlateFromPlaneStress',4,1,1.25e10)
 
+# Define material for rebar
 uniaxialMaterial('Steel02',7,379e6,202.7e9,0.01,18.5,0.925,0.15)
 uniaxialMaterial('Steel02',8,392e6,200.6e9,0.01,18.5,0.925,0.15)
 
+# Convert rebar material to plane stress/plate rebar 
+# Angle 0 is for vertical rebar and 90 is for horizontal rebar
 nDMaterial('PlateRebar',9,7,90.0)
 nDMaterial('PlateRebar',10,8,90.0)
 nDMaterial('PlateRebar',11,8,0.0)
 
+# Define LayeredShell sections. Section 1 is used for the special boundary elements and section 2 is used for the unconfined interior wall portion
 section('LayeredShell',1,10,4,0.0125,11,0.0002403,11,0.0003676,4,0.024696,4,0.024696,4,0.024696,4,0.024696,11,0.0003676,11,0.0002403,4,0.0125)
 section('LayeredShell',2,8,4,0.0125,11,0.0002403,10,0.0002356,4,0.0495241,4,0.0495241,10,0.0002356,11,0.0002403,4,0.0125)
 
@@ -111,9 +110,10 @@ node(53,0.5,2.0,0)
 node(54,0.8,2.0,0)
 node(55,1.0,2.0,0)
 
-# #########################
+##########################
 # ELEMENTS 
-# #########################
+##########################
+
 ShellType = "ShellNLDKGQ"
 # ShellType = "ShellMITC4"
 
@@ -220,12 +220,17 @@ fixY(0.0,1,1,1,1,1,1)
 
 recorder('Node','-file','ReactionPY.txt','-time','-node',1,2,3,4,5,'-dof',1,'reaction')
 
-# create TimeSeries
-timeSeries("Linear", 1)
+############################
+# Gravity Analysis
+############################
+
+print("running gravity")
+
+timeSeries("Linear", 1)					# create TimeSeries for gravity analysis
 pattern('Plain',1,1)
-load(53,0,-246000.0,0.0,0.0,0.0,0.0)
-print('"running gravity"')
-recorder('Node','-file','DispPY.txt','-time','-node',53,'-dof',1,'disp')
+load(53,0,-246000.0,0.0,0.0,0.0,0.0)	# apply vertical load
+
+recorder('Node','-file','Disp.txt','-time','-node',53,'-dof',1,'disp')
 
 constraints('Plain')
 numberer('RCM')
@@ -236,8 +241,9 @@ integrator('LoadControl',0.1)
 analysis('Static')
 analyze(10)
 
-print('"gravity','analyze','ok..."')
-loadConst('-time',0.0)
+print("gravity analysis complete...")
+
+loadConst('-time',0.0)					# Keep the gravity loads for further analysis
 
 wipeAnalysis()
 
@@ -247,9 +253,14 @@ wipeAnalysis()
 
 if(AnalysisType=="Cyclic"):
 	
-	timeSeries('Path',2,'-dt',0.1,'-filePath','input.txt')
+	# This is a load controlled analysis. The input load file "RCshearwall_Load_input.txt" should be in the 
+	# .. same folder as the model file.
+	
+	print("<<<< Running Cyclic Analysis >>>>")
+	
+	timeSeries('Path',2,'-dt',0.1,'-filePath','RCshearwall_Load_input.txt')
 	pattern('Plain',2,2)
-	sp(53,1,1)
+	sp(53,1,1)								# construct a single-point constraint object added to the LoadPattern.
 
 	constraints('Penalty',1e20,1e20)
 	numberer('RCM')
@@ -261,41 +272,34 @@ if(AnalysisType=="Cyclic"):
 	analyze(700)
 
 
-### Pushover AnalysisType
-###############################
-### PUSHOVER ANALYSIS
-###############################
+#######################
+# PUSHOVER ANALYSIS
+#######################
 
 if(AnalysisType=="Pushover"):
 	
 	print("<<<< Running Pushover Analysis >>>>")
 
-	# Create load pattern for pushover analysis
-	# create a plain load pattern
+	# create a plain load pattern for pushover analysis
 	pattern("Plain", 2, 1)
 	
 	ControlNode=53
 	ControlDOF=1
-	MaxDisp= 0.020
+	MaxDisp= 0.0020
 	DispIncr=0.00001
 	NstepsPush=int(MaxDisp/DispIncr)
 	
-	load(ControlNode, 1.00, 0.0, 0.0, 0.0, 0.0, 0.0)
+	load(ControlNode, 1.00, 0.0, 0.0, 0.0, 0.0, 0.0)	# Apply a unit reference load in DOF=1
 	
 	system("BandGeneral")
-	# system("ProfileSPD")
 	numberer("RCM")
-	constraints("Plain")
-	# constraints('Penalty',1e20,1e20)
+	constraints('Penalty',1e20,1e20)
 	integrator("DisplacementControl", ControlNode, ControlDOF, DispIncr)
-	# algorithm("Broyden", 8)  
-	# algorithm("Newton")    
 	algorithm('KrylovNewton')
-	# test('NormUnbalance',1e-5, 100, 1)
 	test('NormDispIncr',1e-05, 1000, 2)
-	# test('EnergyIncr',1e-05, 100, 1)   
 	analysis("Static")
 	
+	# Create a folder to put the output
 	PushDataDir = r'PushoverOut'
 	if not os.path.exists(PushDataDir):
 		os.makedirs(PushDataDir)
@@ -306,17 +310,21 @@ if(AnalysisType=="Pushover"):
 	dataPush = np.zeros((NstepsPush+1,5))
 	for j in range(NstepsPush):
 		analyze(1)
-		dataPush[j+1,0] = nodeDisp(ControlNode,1)
-		reactions()
-		dataPush[j+1,1] = -getLoadFactor(2)
+		dataPush[j+1,0] = nodeDisp(ControlNode,1)*1000		# Convert to mm
+		dataPush[j+1,1] = -getLoadFactor(2)*0.001			# Convert to kN
 		
-	plt.plot(dataPush[:,0], -dataPush[:,1])
-	plt.xlim(0, MaxDisp)
-	plt.xticks(np.linspace(0,MaxDisp,5,endpoint=True)) 
-	plt.yticks(np.linspace(0, -int(dataPush[NstepsPush,1]),10,endpoint=True)) 
+	# Read test output data to plot
+	Test = np.loadtxt("RCshearwall_TestOutput.txt", delimiter="\t", unpack="False")
+	
+	plt.plot(Test[0,:], Test[1,:], color="black", linewidth=0.8, linestyle="--", label='Test')
+	plt.plot(dataPush[:,0], -dataPush[:,1], color="red", linewidth=1.2, linestyle="-", label='Pushover')
+	plt.axhline(0, color='black', linewidth=0.4)
+	plt.axvline(0, color='black', linewidth=0.4)
+	plt.xlim(-25, 25)
+	plt.xticks(np.linspace(-20,20,11,endpoint=True)) 
 	plt.grid(linestyle='dotted') 
-	plt.xlabel('Top Displacement (inch)')
-	plt.ylabel('Base Shear (kip)')
+	plt.xlabel('Displacement (mm)')
+	plt.ylabel('Base Shear (kN)')
 	plt.show()
 	
 	
