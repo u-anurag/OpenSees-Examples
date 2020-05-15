@@ -7,6 +7,13 @@
 ## You can download more examples from https://github.com/u-anurag			##
 ##########################################################################################
 
+## Set number of modeshapes to record
+
+set numModes 6
+
+
+# There is no need to change anything beyond this line #
+
 set NodeFile "RecordNodes.out"
 set fieldNodes [open $NodeFile w+]
 
@@ -32,30 +39,17 @@ close $fieldNodes
 close $fieldElements
 
 
-proc RecordModeShapes {listNodes} {
+proc RecordModeShapes {numModes listNodes} {
 
 	set ModeShapeDir ModeShapes
 	file mkdir $ModeShapeDir
 	set N [llength $listNodes]
-
-	recorder Node -file $ModeShapeDir/ModeShape1.out  -nodeRange [lindex $listNodes 0] [lindex $listNodes [expr $N-1]]  -dof 1 2 3 "eigen 1";
-	recorder Node -file $ModeShapeDir/ModeShape2.out  -nodeRange [lindex $listNodes 0] [lindex $listNodes [expr $N-1]]  -dof 1 2 3 "eigen 2";
-	recorder Node -file $ModeShapeDir/ModeShape3.out  -nodeRange [lindex $listNodes 0] [lindex $listNodes [expr $N-1]]  -dof 1 2 3 "eigen 3";
-	recorder Node -file $ModeShapeDir/ModeShape4.out  -nodeRange [lindex $listNodes 0] [lindex $listNodes [expr $N-1]]  -dof 1 2 3 "eigen 4";
-	recorder Node -file $ModeShapeDir/ModeShape5.out  -nodeRange [lindex $listNodes 0] [lindex $listNodes [expr $N-1]]  -dof 1 2 3 "eigen 5";
-	recorder Node -file $ModeShapeDir/ModeShape6.out  -nodeRange [lindex $listNodes 0] [lindex $listNodes [expr $N-1]]  -dof 1 2 3 "eigen 6";
-	recorder Node -file $ModeShapeDir/ModeShape7.out  -nodeRange [lindex $listNodes 0] [lindex $listNodes [expr $N-1]]  -dof 1 2 3 "eigen 7";
-	recorder Node -file $ModeShapeDir/ModeShape8.out  -nodeRange [lindex $listNodes 0] [lindex $listNodes [expr $N-1]]  -dof 1 2 3 "eigen 8";
-	recorder Node -file $ModeShapeDir/ModeShape9.out  -nodeRange [lindex $listNodes 0] [lindex $listNodes [expr $N-1]]  -dof 1 2 3 "eigen 9";
-	recorder Node -file $ModeShapeDir/ModeShape10.out  -nodeRange [lindex $listNodes 0] [lindex $listNodes [expr $N-1]]  -dof 1 2 3 "eigen 10";
-	recorder Node -file $ModeShapeDir/ModeShape11.out  -nodeRange [lindex $listNodes 0] [lindex $listNodes [expr $N-1]]  -dof 1 2 3 "eigen 11";
-	recorder Node -file $ModeShapeDir/ModeShape12.out  -nodeRange [lindex $listNodes 0] [lindex $listNodes [expr $N-1]]  -dof 1 2 3 "eigen 12";
-	recorder Node -file $ModeShapeDir/ModeShape13.out  -nodeRange [lindex $listNodes 0] [lindex $listNodes [expr $N-1]]  -dof 1 2 3 "eigen 13";
-	recorder Node -file $ModeShapeDir/ModeShape14.out  -nodeRange [lindex $listNodes 0] [lindex $listNodes [expr $N-1]]  -dof 1 2 3 "eigen 14";
-	recorder Node -file $ModeShapeDir/ModeShape15.out  -nodeRange [lindex $listNodes 0] [lindex $listNodes [expr $N-1]]  -dof 1 2 3 "eigen 15";
+	
+	for { set k 1 } { $k <= $numModes } { incr k } {
+		recorder Node -file [format "$ModeShapeDir/ModeShape%i.out" $k] -nodeRange [lindex $listNodes 0] [lindex $listNodes [expr $N-1]] -dof 1 2 3  "eigen $k"
+	} 
 }
 
-# This will record mode shaps only if Eigen analysis is performed
-if {[catch {RecordModeShapes $listNodes} issue]} {
-    puts "Could not record modeshapes due to error : $issue ; this step is ignored"
-}
+RecordModeShapes $numModes $listNodes ;
+
+record
