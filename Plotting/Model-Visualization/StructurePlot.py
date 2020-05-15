@@ -8,14 +8,17 @@
 ## You can download more examples from https://github.com/u-anurag					
 ######################################################################################
 
-from mpl_toolkits.mplot3d import Axes3D
-import matplotlib.pyplot as plt
-import numpy as np
+## Set some parameters
  
 show_node_tags = 'yes'		# Check if you want to display the node numbers     :: 'yes'  or   'no'
 show_element_tags = 'yes'	# Check if you want to display the element numbers  :: 'yes'  or   'no'
 offset = 0.05				#offset for text
  
+## Start of plotting
+from mpl_toolkits.mplot3d import Axes3D
+import matplotlib.pyplot as plt
+import numpy as np
+
 fig = plt.figure()
 ax = fig.add_subplot(1,1,1, projection='3d')
  
