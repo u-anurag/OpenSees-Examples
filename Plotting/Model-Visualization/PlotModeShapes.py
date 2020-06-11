@@ -26,7 +26,9 @@ fig = plt.figure()
 ax = fig.add_subplot(1,1,1, projection='3d')
 
 N,x,y,z = np.loadtxt('RecordNodes.out', dtype=float, delimiter=None, converters=None, unpack=True)
-M = np.loadtxt(modeShapeFile, dtype=float, delimiter=None, converters=None, unpack=True)
+ModeData = np.loadtxt(modeShapeFile, dtype=float, delimiter=None, converters=None, unpack=False)
+
+M = ModeData[0]
 
 ele_style = {'color':'black', 'linewidth':1, 'linestyle':'-'} # elements
 ele_styleO = {'color':'magenta', 'linewidth':0.4, 'linestyle':'--'} # elements
