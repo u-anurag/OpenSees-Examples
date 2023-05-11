@@ -96,6 +96,8 @@ def DeepBeam(beam_length, beam_depth, nEle_L, nEle_D):
     plt.axis([-reaction_limit, reaction_limit, 0, beam_depth])
     plt.grid(True)
     plt.show()
+
+    ops.wipe()
     
     
 	
